@@ -73,6 +73,10 @@ npm run migrate -- "E:\gozaresh_db.sql" --apply --username=supervisor2
 
 ## کنترل کیفیت
 
+در Vercel متغیرهای `MONGODB_URI` و `MONGODB_DB` را برای محیط Production تنظیم کنید و پس از تغییر آن‌ها Redeploy انجام دهید. مقدار URI فقط خود آدرس اتصال است؛ نام متغیر، کوتیشن یا خط جدید نباید بخشی از مقدار باشد. کاراکترهای ویژهٔ رمز داخل URI باید URL-encode شوند، مثلاً `#` به `%23` تبدیل می‌شود. مقدارهای واقعی اتصال فقط در تنظیمات خصوصی محیط نگهداری می‌شوند.
+
+خطای `MongoParseError` یا کد `DATABASE_CONFIGURATION_ERROR` یعنی فرمت تنظیمات اتصال درست نیست؛ این خطا قبل از اتصال به دیتابیس رخ می‌دهد. کدهای `DATABASE_NOT_CONFIGURED`، `DATABASE_AUTH_FAILED`، `DATABASE_PERMISSION_DENIED` و `DATABASE_UNREACHABLE` به‌ترتیب تنظیمات ناقص، خطای احراز هویت دیتابیس، دسترسی ناکافی و مشکل اتصال شبکه را مشخص می‌کنند. لاگ سرور فقط دستهٔ خطا و کد عددی MongoDB را ثبت می‌کند و رشتهٔ اتصال، رمز و متن خام خطا را نمایش نمی‌دهد.
+
 ```powershell
 npm run typecheck
 npm run lint

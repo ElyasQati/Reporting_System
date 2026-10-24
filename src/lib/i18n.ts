@@ -443,6 +443,26 @@ export const fa: Record<MessageKey, string> = {
   reportDescription: "یک صنف، یک هفته و گزارشی قابل اتکا از حاضری.",
 };
 export const errors: Record<string, [string, string]> = {
+  DATABASE_NOT_CONFIGURED: [
+    "اتصال دیتابیس روی سرور تنظیم نشده است؛ با مدیر سیستم تماس بگیرید.",
+    "The database connection is not configured on the server. Contact the administrator.",
+  ],
+  DATABASE_CONFIGURATION_ERROR: [
+    "تنظیمات اتصال دیتابیس روی سرور درست نیست؛ با مدیر سیستم تماس بگیرید.",
+    "The server's database connection settings are invalid. Contact the administrator.",
+  ],
+  DATABASE_AUTH_FAILED: [
+    "سرور با مشخصات فعلی به دیتابیس وارد نمی‌شود؛ با مدیر سیستم تماس بگیرید.",
+    "The server could not authenticate with the database. Contact the administrator.",
+  ],
+  DATABASE_PERMISSION_DENIED: [
+    "دسترسی سرور به اطلاعات دیتابیس کافی نیست؛ با مدیر سیستم تماس بگیرید.",
+    "The server does not have the required database permissions. Contact the administrator.",
+  ],
+  DATABASE_UNREACHABLE: [
+    "سرور نمی‌تواند به دیتابیس وصل شود؛ تنظیمات شبکه باید توسط مدیر بررسی شود.",
+    "The server cannot reach the database. Ask the administrator to check network access.",
+  ],
   USERNAME_TAKEN: [
     "این نام کاربری قبلاً استفاده شده؛ نام دیگری انتخاب کنید.",
     "This username is already in use. Choose another one.",

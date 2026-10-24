@@ -4,6 +4,7 @@ import { MongoServerError } from "mongodb";
 import { currentUser } from "./auth";
 import type { User } from "./types";
 import { ApiError } from "./errors";
+import { safeErrorDetails } from "./database-errors";
 export { ApiError } from "./errors";
 type Handler = (request: NextRequest, user: User) => Promise<Response>;
 export function api(handler: Handler, mutation = false, adminOnly = mutation) {
@@ -35,11 +36,9 @@ export function errorResponse(error: unknown) {
   if (error instanceof MongoServerError && error.code === 11000)
     return NextResponse.json({ error: "DUPLICATE_RECORD" }, { status: 409 });
   // Do not expose connection strings, database errors or credentials in browser responses.
-  console.error(
-    "[report-desk]",
-    error instanceof Error ? error.name : "UnknownError",
-  );
-  return NextResponse.json({ error: "SERVER_UNAVAILABLE" }, { status: 503 });
+  const details = safeErrorDetails(error);
+  console.error("[report-desk]", details);
+  return NextResponse.json({ error: details.diagnosis }, { status: 503 });
 }
 export async function body(request: NextRequest, maxLength = 1_000_000) {
   const raw = await request.text();
