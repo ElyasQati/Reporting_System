@@ -1,43 +1,70 @@
 import { describe, expect, it } from "vitest";
-import { registrationSchema } from "../src/lib/validation";
+import {
+  emailLoginSchema,
+  emailVerifySchema,
+  invitationSchema,
+} from "../src/lib/email-validation";
+import { isSystemAdmin, ADMIN_EMAIL } from "../src/lib/access";
 
-describe("self-service registration", () => {
-  const valid = {
-    name: "سرنگران آزمایشی",
-    username: "supervisor.one",
-    password: "Long-Password-2026!",
-  };
-  it("accepts independent account credentials and discards requested ownership and roles", () => {
-    const result = registrationSchema.parse({
-      ...valid,
-      ownerId: "someone-else",
-      role: "viewer",
-      active: false,
+describe("invitation-only email sign-in", () => {
+  it("normalizes emails and invitation codes without accepting client roles or ownership", () => {
+    expect(
+      emailLoginSchema.parse({
+        email: " Person@Example.com ",
+        name: " Supervisor ",
+        invitationCode: " w-0123456789abcdefabcd ",
+        role: "admin",
+        ownerId: "other",
+      }),
+    ).toEqual({
+      email: "person@example.com",
+      name: "Supervisor",
+      invitationCode: "W-0123456789ABCDEFABCD",
+      locale: "fa",
     });
-    expect(result).toEqual(valid);
-  });
-  it("normalizes usernames and rejects invalid or too-short usernames", () => {
+    expect(emailLoginSchema.safeParse({ email: "not-an-email" }).success).toBe(
+      false,
+    );
     expect(
-      registrationSchema.parse({ ...valid, username: " Ａlpha.one " }).username,
-    ).toBe("Alpha.one");
-    expect(
-      registrationSchema.safeParse({ ...valid, username: "a" }).success,
-    ).toBe(false);
-    expect(
-      registrationSchema.safeParse({ ...valid, username: "two users" }).success,
+      emailLoginSchema.safeParse({
+        email: "a@example.com",
+        invitationCode: "W042",
+      }).success,
     ).toBe(false);
   });
-  it("requires a password that bcrypt can hash without truncation", () => {
+  it("accepts six digits including Persian and Arabic digits without allowing malformed codes", () => {
+    const challengeId = "9f7386ef-a5dd-4e86-88b5-c12cbef16501";
+    expect(emailVerifySchema.parse({ challengeId, code: "۱۲۳۴۵۶" }).code).toBe(
+      "123456",
+    );
+    expect(emailVerifySchema.parse({ challengeId, code: "١٢٣٤٥٦" }).code).toBe(
+      "123456",
+    );
     expect(
-      registrationSchema.safeParse({ ...valid, password: "short" }).success,
+      emailVerifySchema.safeParse({ challengeId, code: "12345" }).success,
     ).toBe(false);
     expect(
-      registrationSchema.safeParse({ ...valid, password: "س".repeat(37) })
-        .success,
+      emailVerifySchema.safeParse({ challengeId, code: "12e456" }).success,
     ).toBe(false);
     expect(
-      registrationSchema.safeParse({ ...valid, password: "x".repeat(72) })
+      emailVerifySchema.safeParse({ challengeId: "bad", code: "123456" })
         .success,
+    ).toBe(false);
+  });
+  it("restricts expiry choices and derives global administration from the verified email", () => {
+    expect(invitationSchema.parse({ email: "a@example.com" }).days).toBe(7);
+    expect(
+      invitationSchema.safeParse({ email: "a@example.com", days: -1 }).success,
+    ).toBe(false);
+    expect(isSystemAdmin({ email: ADMIN_EMAIL })).toBe(false);
+    expect(
+      isSystemAdmin({ email: ADMIN_EMAIL, emailVerifiedAt: "2026-10-28" }),
     ).toBe(true);
+    expect(
+      isSystemAdmin({
+        email: "other@example.com",
+        emailVerifiedAt: "2026-10-28",
+      }),
+    ).toBe(false);
   });
 });

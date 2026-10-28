@@ -14,7 +14,8 @@
     "migrate": "tsx scripts/migrate.ts",
     "check:db": "tsx scripts/check-db.ts",
     "test:integration": "tsx --env-file=.env scripts/verify-domain.ts",
-    "format": "prettier --write src scripts tests *.ts *.mjs"
+    "format": "prettier --write src scripts tests *.ts *.mjs",
+    "check:mail": "tsx scripts/check-mail.ts"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "1.2.1",
@@ -27,6 +28,7 @@
     "mongodb": "7.7.0",
     "next": "16.4.3",
     "next-themes": "0.4.6",
+    "nodemailer": "^10.2.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "sonner": "2.0.8",
@@ -35,11 +37,14 @@
   "devDependencies": {
     "@playwright/test": "^1.58.0",
     "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "@types/smtp-server": "^3.5.13",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.4.3",
     "prettier": "^3.6.0",
+    "smtp-server": "^3.21.1",
     "tsx": "^4.20.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.0"

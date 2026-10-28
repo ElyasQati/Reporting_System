@@ -1,3 +1,21 @@
+# Current verification — invitation-only email login (2026-10-28)
+
+The production build and TypeScript validation passed. ESLint passed; the changed backup route and final test helper also passed a focused lint check. All 22 unit tests passed. All three browser scenarios passed against the production build: the OTP/invitation scenario and the existing workspace scenario passed together, then the tenancy scenario passed after correcting a legacy admin-only check on workspace backup export.
+
+The OTP scenario exercises the actual HTTP routes, MongoDB transactions, bcrypt comparisons, session cookies and Nodemailer SMTP delivery through a loopback SMTP sink. It verifies email-bound invitations, no account before verification, incorrect codes, five-attempt exhaustion, expiry, resend invalidation, concurrent consumption with one successful response, replay rejection, invite revocation after OTP delivery, denied access to administrator APIs, email delivery failure cleanup, existing-account login without a new invitation, fresh administrator ownership and unchanged legacy accounts/data. Legacy password sessions, password login and public password registration are rejected.
+
+The tenancy scenario verifies initially empty workspaces in English and Persian, all entity mutations and references, ownership spoofing, scoped settings, duplicate class/book names across owners, archives, scoped backup export, portable restore and cross-tab logout/account switching. Ordinary invited members can export their own workspace backup. The existing workspace scenario verifies the reporting calendar, forms, curriculum topics, archive, themes, mobile layout and logout.
+
+All browser tests use guarded disposable databases named `report_desk_test_*`; they are dropped by teardown. The interrupted initial run's disposable database was separately identified and removed. The real workspace database was not migrated or populated, and no email was sent to a real mailbox. The administrator account is created only after a real OTP verification and receives a fresh workspace; previous account ownership is preserved.
+
+The existing Taste framed-sheet direction and fonts were retained. Live browser captures and static DOM snapshots of invitations, sign-up and OTP screens are in ignored `.taste-skill/email-qa/`. Desktop, tablet and phone layouts were checked, including Persian RTL and dark mode. Inspector checks pass with a narrowly scoped `placeholder-data` allowance for the deliberate `example.com` test fixtures. Retained warnings concern the existing compact metadata/label scale and honest whitespace in a one-invitation list. Actual browser screenshots and inspector renders were reviewed. No production sample records were added.
+
+Mail configuration from the reference project was inspected but not copied because its sender differs from the requested Gmail account. The user chose to configure `elyasqati527@gmail.com` and its App Password themselves. `npm run check:mail` subsequently passed with the user-configured Gmail credentials: SMTP connectivity and authentication were verified without sending a message. Delivery to a real inbox and Vercel deployment are still not claimed as verified. `.env` remains ignored and a scan of all changed/new source files found no matches for configured private credentials.
+
+The notes below record earlier versions and verification runs; password-registration descriptions are historical and are superseded by the current email flow.
+
+---
+
 # Verification
 
 - Production build and strict TypeScript checks passed.

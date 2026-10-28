@@ -12,20 +12,35 @@ export default defineConfig({
   globalSetup: "./tests/e2e/setup.ts",
   globalTeardown: "./tests/e2e/teardown.ts",
   use: {
+    actionTimeout: 15000,
     baseURL: "http://localhost:3100",
     channel: "msedge",
     viewport: { width: 1440, height: 1000 },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  webServer: {
-    command:
-      process.env.E2E_USE_BUILD === "1"
-        ? "npm run start -- --port 3100"
-        : "npm run dev -- --port 3100",
-    url: "http://localhost:3100/en",
-    reuseExistingServer: false,
-    timeout: 180000,
-    env: { MONGODB_DB: process.env.E2E_DB },
-  },
+  webServer: [
+    {
+      command: "npx tsx tests/e2e/mailbox.ts",
+      url: "http://127.0.0.1:3103",
+      reuseExistingServer: false,
+      env: { MONGODB_DB: process.env.E2E_DB },
+    },
+    {
+      command:
+        process.env.E2E_USE_BUILD === "1"
+          ? "npm run start -- --port 3100"
+          : "npm run dev -- --port 3100",
+      url: "http://localhost:3100/en",
+      reuseExistingServer: false,
+      timeout: 180000,
+      env: {
+        MONGODB_DB: process.env.E2E_DB,
+        SMTP_HOST: "127.0.0.1",
+        SMTP_PORT: "3102",
+        SMTP_USER: "mailbox@example.test",
+        SMTP_PASS: "local-test-only",
+      },
+    },
+  ],
 });

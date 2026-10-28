@@ -7,6 +7,8 @@ import type {
   Session,
   Settings,
   User,
+  Invitation,
+  EmailChallenge,
 } from "./types";
 declare global {
   var mongoConnection: Promise<MongoClient> | undefined;
@@ -42,6 +44,8 @@ export async function collections() {
     settings: db.collection<Settings>("settings"),
     users: db.collection<User>("users"),
     sessions: db.collection<Session>("sessions"),
+    invitations: db.collection<Invitation>("invitations"),
+    emailChallenges: db.collection<EmailChallenge>("email_challenges"),
   };
 }
 export async function ensureIndexes() {
@@ -59,6 +63,7 @@ export async function ensureIndexes() {
       },
     ),
     c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+    ...emailIndexes(c),
     c.reports.createIndex(
       { ownerId: 1, classId: 1, weekStart: 1 },
       {
@@ -94,4 +99,30 @@ export async function ensureIndexes() {
       if (existing.some((index) => index.name === name))
         await collection.dropIndex(name);
   }
+}
+
+function emailIndexes(c: Awaited<ReturnType<typeof collections>>) {
+  return [
+    c.users.createIndex(
+      { email: 1 },
+      { unique: true, partialFilterExpression: { email: { $type: "string" } } },
+    ),
+    c.invitations.createIndex({ codeHash: 1 }, { unique: true }),
+    c.invitations.createIndex({ createdAt: -1 }),
+    c.emailChallenges.createIndex({ email: 1 }, { unique: true }),
+    c.emailChallenges.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+    c.db
+      .collection("login_attempts")
+      .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+  ];
+}
+
+let authIndexes: Promise<unknown> | undefined;
+export async function ensureAuthIndexes() {
+  const c = await collections();
+  authIndexes ??= Promise.all(emailIndexes(c)).catch((error) => {
+    authIndexes = undefined;
+    throw error;
+  });
+  await authIndexes;
 }

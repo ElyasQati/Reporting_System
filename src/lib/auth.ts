@@ -14,9 +14,10 @@ export async function currentUser(): Promise<User | null> {
     _id: digest(token),
     expiresAt: { $gt: new Date() },
   });
-  return session
-    ? c.users.findOne({ _id: session.userId, active: true })
-    : null;
+  if (!session) return null;
+  const user = await c.users.findOne({ _id: session.userId, active: true });
+  // Legacy password sessions cannot bypass email verification or invitations.
+  return user?.email && user.emailVerifiedAt ? user : null;
 }
 export async function createSession(userId: string) {
   const c = await collections();

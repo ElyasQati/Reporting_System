@@ -1,3 +1,11 @@
+import {
+  capture,
+  login,
+  invite,
+  mailbox,
+  resetCooldown,
+  ADMIN_EMAIL,
+} from "./email-helpers";
 import { test, expect, type APIRequestContext } from "@playwright/test";
 import { dateKey, shiftDate } from "../../src/lib/dates";
 
@@ -8,6 +16,7 @@ test("self registration creates isolated workspaces and protects every data path
   browser,
 }) => {
   test.setTimeout(300000);
+  const admin = await browser.newContext({ baseURL: origin });
   const alpha = await browser.newContext({ baseURL: origin });
   const beta = await browser.newContext({ baseURL: origin });
   const gamma = await browser.newContext({ baseURL: origin });
@@ -17,6 +26,9 @@ test("self registration creates isolated workspaces and protects every data path
     return (await response.json())._id as string;
   };
   try {
+    await resetCooldown(ADMIN_EMAIL);
+    await login(admin.request, ADMIN_EMAIL);
+    const inviteA = await invite(admin.request, "tenant-alpha@example.com");
     const pageA = await alpha.newPage();
     await pageA.goto("/en");
     await pageA
@@ -28,28 +40,25 @@ test("self registration creates isolated workspaces and protects every data path
     await pageA
       .getByLabel("Full name", { exact: true })
       .fill("Supervisor Alpha");
-    await pageA.getByLabel("Username", { exact: true }).fill("tenant-alpha");
     await pageA
-      .getByLabel("Password", { exact: true })
-      .fill("Alpha-Test-Password-2026!");
+      .getByLabel("Email", { exact: true })
+      .fill("tenant-alpha@example.com");
     await pageA
-      .getByLabel("Confirm password", { exact: true })
-      .fill("Different-Password-2026!");
+      .getByLabel("Administrator invitation code", { exact: true })
+      .fill(inviteA.code);
+    await capture(pageA, "signup-en-1440");
     await pageA
-      .getByRole("button", { name: "Create account", exact: true })
+      .getByRole("button", { name: "Send sign-in code", exact: true })
       .click();
-    await expect(pageA.locator("form").getByRole("alert")).toHaveText(
-      "The passwords do not match.",
-    );
+    await expect(
+      pageA.getByLabel("One-time code", { exact: true }),
+    ).toBeVisible();
+    await capture(pageA, "otp-en-1440");
     await pageA
-      .getByLabel("Confirm password", { exact: true })
-      .fill("Alpha-Test-Password-2026!");
-    await pageA.screenshot({
-      path: "test-results/signup-en-desktop.png",
-      fullPage: true,
-    });
+      .getByLabel("One-time code", { exact: true })
+      .fill((await mailbox(alpha.request, "tenant-alpha@example.com")).code);
     await pageA
-      .getByRole("button", { name: "Create account", exact: true })
+      .getByRole("button", { name: "Verify and sign in", exact: true })
       .click();
     await expect(
       pageA.getByRole("heading", { name: "Overview", exact: true }),
@@ -124,25 +133,30 @@ test("self registration creates isolated workspaces and protects every data path
         exact: true,
       })
       .click();
-    await pageB.screenshot({
-      path: "test-results/signup-fa-mobile.png",
-      fullPage: true,
-    });
+    await capture(pageB, "signup-fa-390");
     expect(
       await pageB.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
+    const inviteB = await invite(admin.request, "tenant-beta@example.com");
     await pageB.getByLabel("نام کامل", { exact: true }).fill("سرنگران بتا");
-    await pageB.getByLabel("نام کاربری", { exact: true }).fill("tenant-beta");
     await pageB
-      .getByLabel("رمز عبور", { exact: true })
-      .fill("Beta-Test-Password-2026!");
+      .getByLabel("ایمیل", { exact: true })
+      .fill("tenant-beta@example.com");
+    await pageB.getByLabel("کد دعوت ادمین", { exact: true }).fill(inviteB.code);
     await pageB
-      .getByLabel("تکرار رمز عبور", { exact: true })
-      .fill("Beta-Test-Password-2026!");
+      .getByRole("button", { name: "ارسال کد ورود", exact: true })
+      .click();
+    await expect(
+      pageB.getByLabel("کد یک‌بارمصرف", { exact: true }),
+    ).toBeVisible();
+    await capture(pageB, "otp-fa-390");
     await pageB
-      .getByRole("button", { name: "ثبت‌نام سرنگران", exact: true })
+      .getByLabel("کد یک‌بارمصرف", { exact: true })
+      .fill((await mailbox(beta.request, "tenant-beta@example.com")).code);
+    await pageB
+      .getByRole("button", { name: "تأیید و ورود", exact: true })
       .click();
     await expect(
       pageB.getByRole("heading", { name: "نمای کلی", exact: true }),
@@ -269,41 +283,24 @@ test("self registration creates isolated workspaces and protects every data path
         })
       ).status(),
     ).toBe(400);
+    expect((await apiB.get("/api/admin/invitations")).status()).toBe(403);
     expect(
       (
-        await apiB.post("/api/auth/register", {
+        await apiB.post("/api/admin/invitations", {
           headers,
-          data: {
-            name: "Duplicate",
-            username: "TENANT-ALPHA",
-            password: "Another-Test-Password-2026!",
-          },
-        })
-      ).status(),
-    ).toBe(409);
-    expect(
-      (
-        await gamma.request.post("/api/auth/register", {
-          data: {
-            name: "No origin",
-            username: "csrf-user",
-            password: "Another-Test-Password-2026!",
-          },
+          data: { email: "intruder@example.com" },
         })
       ).status(),
     ).toBe(403);
-
-    const signupC = await gamma.request.post("/api/auth/register", {
-      headers,
-      data: {
-        name: "Supervisor Gamma",
-        username: "tenant-gamma",
-        password: "Gamma-Test-Password-2026!",
-        ownerId: ownerA,
-        role: "viewer",
-      },
-    });
-    expect(signupC.status()).toBe(201);
+    expect(
+      (
+        await gamma.request.post("/api/auth/email/send", {
+          data: { email: "csrf@example.com" },
+        })
+      ).status(),
+    ).toBe(403);
+    const inviteC = await invite(admin.request, "tenant-gamma@example.com");
+    await login(gamma.request, "tenant-gamma@example.com", inviteC.code);
     const workspaceC = await (await gamma.request.get("/api/workspace")).json();
     expect(workspaceC.classes).toEqual([]);
     expect(workspaceC.settings._id).not.toBe(ownerA);
@@ -350,11 +347,22 @@ test("self registration creates isolated workspaces and protects every data path
     await expect(
       pageB.getByRole("heading", { name: "Sign in", exact: true }),
     ).toBeVisible();
-    await pageB.getByLabel("Username", { exact: true }).fill("TENANT-ALPHA");
+    await resetCooldown("tenant-alpha@example.com");
     await pageB
-      .getByLabel("Password", { exact: true })
-      .fill("Alpha-Test-Password-2026!");
-    await pageB.getByRole("button", { name: "Sign in", exact: true }).click();
+      .getByLabel("Email", { exact: true })
+      .fill("TENANT-ALPHA@example.com");
+    await pageB
+      .getByRole("button", { name: "Send sign-in code", exact: true })
+      .click();
+    await expect(
+      pageB.getByLabel("One-time code", { exact: true }),
+    ).toBeVisible();
+    await pageB
+      .getByLabel("One-time code", { exact: true })
+      .fill((await mailbox(beta.request, "tenant-alpha@example.com")).code);
+    await pageB
+      .getByRole("button", { name: "Verify and sign in", exact: true })
+      .click();
     await expect(
       pageB.getByText("Alpha private class", { exact: true }),
     ).toBeVisible();
@@ -365,6 +373,7 @@ test("self registration creates isolated workspaces and protects every data path
       mirror.getByText("Beta private class", { exact: true }),
     ).toHaveCount(0);
   } finally {
+    await admin.close();
     await alpha.close();
     await beta.close();
     await gamma.close();

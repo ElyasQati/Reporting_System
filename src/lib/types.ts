@@ -1,5 +1,5 @@
 export type Locale = "fa" | "en";
-export type Role = "admin" | "viewer";
+export type Role = "admin" | "member" | "viewer";
 export interface Base {
   _id: string;
   ownerId?: string;
@@ -72,7 +72,9 @@ export interface Settings {
 }
 export interface User extends Base {
   username: string;
-  passwordHash: string;
+  passwordHash?: string;
+  email?: string;
+  emailVerifiedAt?: string;
   name: string;
   role: Role;
   active: boolean;
@@ -89,9 +91,36 @@ export interface Workspace {
   curricula: Curriculum[];
   reports: Report[];
   settings: Settings;
-  user: { name: string; username: string; role: Role };
+  user: {
+    name: string;
+    username: string;
+    email?: string;
+    role: Role;
+    isSystemAdmin?: boolean;
+  };
   period: string;
   legacyCount: number;
+}
+export interface Invitation {
+  _id: string;
+  email: string;
+  codeHash: string;
+  createdBy: string;
+  createdAt: string;
+  expiresAt: Date;
+  usedAt: string | null;
+  usedBy: string | null;
+  revokedAt: string | null;
+}
+export interface EmailChallenge {
+  _id: string;
+  email: string;
+  name: string;
+  invitationId: string | null;
+  codeHash: string;
+  expiresAt: Date;
+  attempts: number;
+  delivered: boolean;
 }
 export interface PersonStats {
   person: Person;

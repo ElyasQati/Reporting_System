@@ -1,3 +1,4 @@
+import { publicUser } from "@/lib/access";
 import { NextResponse } from "next/server";
 import { api, ApiError } from "@/lib/http";
 import { workspaceCollections, initialSettings } from "@/lib/workspace";
@@ -45,7 +46,7 @@ export const GET = api(async (request, user) => {
       settings,
       period,
       legacyCount,
-      user: { name: user.name, username: user.username, role: user.role },
+      user: publicUser(user),
     },
     { headers: { "Cache-Control": "no-store" } },
   );

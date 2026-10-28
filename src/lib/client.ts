@@ -24,7 +24,7 @@ export async function request<T>(
     throw new RequestError(data.error || "SERVER_UNAVAILABLE", response.status);
   }
   if (
-    (url === "/api/auth" || url === "/api/auth/register") &&
+    (url === "/api/auth" || url === "/api/auth/email/verify") &&
     options?.method &&
     options.method !== "GET"
   ) {

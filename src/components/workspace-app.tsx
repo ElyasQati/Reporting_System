@@ -22,6 +22,7 @@ import {
   type Action,
 } from "./data-views";
 import { SettingsView } from "./settings-view";
+import { InvitationsView } from "./invitations-view";
 const descriptions: Record<string, MessageKey> = {
   dashboard: "overviewDescription",
   classes: "classDescription",
@@ -32,6 +33,7 @@ const descriptions: Record<string, MessageKey> = {
   analytics: "attendanceHint",
   archive: "archiveDescription",
   settings: "preferences",
+  invitations: "invitationsDescription",
 };
 export function WorkspaceApp({ view }: { view: string }) {
   const { locale, t } = useI18n();
@@ -237,6 +239,7 @@ export function WorkspaceApp({ view }: { view: string }) {
       view={view}
       name={data.user.name}
       organization={data.settings.organization}
+      isSystemAdmin={data.user.isSystemAdmin}
       onLogout={() => void logout()}
     >
       <div className="page-heading">
@@ -278,6 +281,14 @@ export function WorkspaceApp({ view }: { view: string }) {
           <Button onClick={() => void load()}>{t("retry")}</Button>
         </div>
       )}
+      {view === "invitations" &&
+        (data.user.isSystemAdmin ? (
+          <InvitationsView />
+        ) : (
+          <p className="form-error" role="alert">
+            {errorText("FORBIDDEN", locale)}
+          </p>
+        ))}
       {data.legacyCount > 0 && view === "reports" && (
         <div className="inline-notice">
           {t("legacyHint")}

@@ -5,9 +5,10 @@ import { currentUser } from "./auth";
 import type { User } from "./types";
 import { ApiError } from "./errors";
 import { safeErrorDetails } from "./database-errors";
+import { isSystemAdmin } from "./access";
 export { ApiError } from "./errors";
 type Handler = (request: NextRequest, user: User) => Promise<Response>;
-export function api(handler: Handler, mutation = false, adminOnly = mutation) {
+export function api(handler: Handler, mutation = false, adminOnly = false) {
   return async (request: NextRequest) => {
     try {
       if (mutation) {
@@ -17,7 +18,10 @@ export function api(handler: Handler, mutation = false, adminOnly = mutation) {
       }
       const user = await currentUser();
       if (!user) throw new ApiError("UNAUTHORIZED", 401);
-      if (adminOnly && user.role !== "admin")
+      if (
+        (adminOnly && !isSystemAdmin(user)) ||
+        (mutation && user.role === "viewer")
+      )
         throw new ApiError("FORBIDDEN", 403);
       return await handler(request, user);
     } catch (error) {

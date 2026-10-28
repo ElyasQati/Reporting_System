@@ -2053,3 +2053,106 @@ tbody tr:hover {
     font-size: 11px;
   }
 }
+
+/* Email sign-in and invitation management keep the existing framed sheet. */
+.otp-input {
+  text-align: center;
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.25em;
+}
+.otp-destination {
+  overflow-wrap: anywhere;
+  text-align: center;
+  font-weight: 500;
+}
+.otp-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: 16px;
+  gap: 4px;
+}
+.invitation-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.invitation-form {
+  display: grid;
+  gap: 16px;
+}
+.invitation-form h2,
+.invitation-history h2 {
+  font-size: 1.125rem;
+}
+.invitation-result {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.invitation-result h3 {
+  font-size: 1rem;
+}
+.invite-email {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.section-heading,
+.invitation-row-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.invitation-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+.invitation-list li {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.invitation-row-heading {
+  flex-wrap: wrap;
+}
+.invitation-row-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+@media (max-width: 900px) {
+  .invitation-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+@media (max-width: 480px) {
+  .section-heading {
+    flex-wrap: wrap;
+  }
+  .invitation-row-details {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.status-badge {
+  display: inline-flex;
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: var(--raised);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.status-good {
+  color: var(--positive);
+  background: var(--positive-bg);
+}

@@ -18,6 +18,7 @@ export default async function Page({
       "analytics",
       "archive",
       "settings",
+      "invitations",
     ].includes(page) ||
     !["fa", "en"].includes(locale)
   )

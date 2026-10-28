@@ -1,5 +1,45 @@
 import type { Locale } from "./types";
 export const en = {
+  invitations: "Invitations",
+  invitationsDescription:
+    "Create an email-specific invitation for a new supervisor.",
+  sendCode: "Send sign-in code",
+  verifyCode: "Verify and sign in",
+  otpCode: "One-time code",
+  otpHeading: "Check your email",
+  otpHint: "Enter the six-digit code we sent you. It is valid for 5 minutes.",
+  resendCode: "Resend code",
+  resendIn: "Resend available in",
+  seconds: "seconds",
+  changeEmail: "Change email",
+  emailSigninHint: "Sign in to your workspace with an email verification code.",
+  emailSignupHint:
+    "An administrator invitation and email verification are required to create an account.",
+  invitationCode: "Administrator invitation code",
+  inviteHint:
+    "Ask the administrator for a code. It is valid only for your email address.",
+  emailAccount: "Email account",
+  emailAccountHint: "A one-time code is sent to your email for each sign-in.",
+  createInvitation: "Create invitation",
+  inviteEmail: "Invitee email",
+  inviteValidity: "Invitation validity",
+  daysUnit: "days",
+  invitationCreated: "Invitation code is ready",
+  invitationCopyHint:
+    "This code is shown only once. Copy it and share it with this person.",
+  copyCode: "Copy code",
+  copiedCode: "Code copied",
+  revokeInvitation: "Revoke invitation",
+  inviteActive: "Ready to use",
+  inviteUsed: "Used",
+  inviteRevoked: "Revoked",
+  inviteExpired: "Expired",
+  expiresAt: "Expires",
+  createdAt: "Created",
+  noInvitations: "No invitations have been created yet.",
+  inviteHistory: "Latest 100 invitations",
+  adminRole: "System administrator",
+  memberRole: "Supervisor",
   noClassesStatus: "No classes",
   brand: "Report Desk",
   tagline: "Academic reporting",
@@ -222,6 +262,44 @@ export const en = {
 };
 export type MessageKey = keyof typeof en;
 export const fa: Record<MessageKey, string> = {
+  invitations: "مدیریت دعوت‌ها",
+  invitationsDescription: "برای سرنگران جدید، دعوت مخصوص ایمیل خودش بسازید.",
+  sendCode: "ارسال کد ورود",
+  verifyCode: "تأیید و ورود",
+  otpCode: "کد یک‌بارمصرف",
+  otpHeading: "ایمیل خود را بررسی کنید",
+  otpHint: "کد شش‌رقمی ارسال‌شده را وارد کنید؛ اعتبار کد ۵ دقیقه است.",
+  resendCode: "ارسال دوبارهٔ کد",
+  resendIn: "ارسال دوباره پس از",
+  seconds: "ثانیه",
+  changeEmail: "تغییر ایمیل",
+  emailSigninHint: "با ایمیل و کد یک‌بارمصرف وارد فضای کاری خود شوید.",
+  emailSignupHint: "برای ساخت حساب، کد دعوت ادمین و تأیید ایمیل لازم است.",
+  invitationCode: "کد دعوت ادمین",
+  inviteHint:
+    "کد دعوت را از ادمین بگیرید. این کد فقط برای ایمیل شما معتبر است.",
+  emailAccount: "حساب ایمیلی",
+  emailAccountHint: "برای هر ورود، کد یک‌بارمصرف به ایمیل شما ارسال می‌شود.",
+  createInvitation: "ایجاد کد دعوت",
+  inviteEmail: "ایمیل شخص دعوت‌شده",
+  inviteValidity: "اعتبار دعوت",
+  daysUnit: "روز",
+  invitationCreated: "کد دعوت آماده است",
+  invitationCopyHint:
+    "کد فقط همین بار نمایش داده می‌شود. آن را کپی کنید و برای همین شخص بفرستید.",
+  copyCode: "کپی کد",
+  copiedCode: "کد کپی شد",
+  revokeInvitation: "لغو دعوت",
+  inviteActive: "در انتظار استفاده",
+  inviteUsed: "استفاده‌شده",
+  inviteRevoked: "لغوشده",
+  inviteExpired: "منقضی‌شده",
+  expiresAt: "پایان اعتبار",
+  createdAt: "تاریخ ایجاد",
+  noInvitations: "هنوز دعوتی ساخته نشده است.",
+  inviteHistory: "۱۰۰ دعوت اخیر",
+  adminRole: "ادمین سیستم",
+  memberRole: "سرنگران",
   noClassesStatus: "بدون صنف",
   brand: "گزارش‌یار",
   tagline: "سیستم گزارش‌دهی آموزشی",
@@ -443,6 +521,51 @@ export const fa: Record<MessageKey, string> = {
   reportDescription: "یک صنف، یک هفته و گزارشی قابل اتکا از حاضری.",
 };
 export const errors: Record<string, [string, string]> = {
+  EMAIL_NOT_CONFIGURED: [
+    "ارسال ایمیل روی سرور تنظیم نشده است؛ با ادمین تماس بگیرید.",
+    "Email delivery is not configured. Contact the administrator.",
+  ],
+  EMAIL_SEND_FAILED: [
+    "ارسال کد انجام نشد؛ کمی بعد دوباره تلاش کنید یا با ادمین تماس بگیرید.",
+    "The code could not be sent. Try again shortly or contact the administrator.",
+  ],
+  OTP_INVALID: [
+    "کد نادرست یا منقضی است، قبلاً استفاده شده یا تلاش‌ها تمام شده‌اند. کد جدید بگیرید.",
+    "The code is incorrect, expired, already used, or has reached its attempt limit. Request a new code.",
+  ],
+  OTP_RESEND_WAIT: [
+    "برای ارسال دوبارهٔ کد، یک دقیقه صبر کنید.",
+    "Wait one minute before requesting another code.",
+  ],
+  INVITATION_REQUIRED: [
+    "برای حساب جدید، نام کامل و کد دعوت ادمین را در بخش ثبت‌نام وارد کنید.",
+    "To create an account, enter your full name and administrator invitation code in the sign-up form.",
+  ],
+  INVITATION_INVALID: [
+    "کد دعوت برای این ایمیل معتبر نیست، منقضی شده یا لغو شده است. از ادمین کد تازه بگیرید.",
+    "This invitation is invalid for this email, expired, or revoked. Ask the administrator for a new code.",
+  ],
+  INVITATION_NOT_ACTIVE: [
+    "این دعوت دیگر فعال نیست. فهرست را تازه کنید.",
+    "This invitation is no longer active. Refresh the list.",
+  ],
+  EMAIL_ALREADY_REGISTERED: [
+    "این ایمیل حساب دارد؛ از بخش ورود استفاده کنید.",
+    "This email already has an account. Use sign in.",
+  ],
+  ACCOUNT_DISABLED: [
+    "این حساب غیرفعال است؛ با ادمین تماس بگیرید.",
+    "This account is disabled. Contact the administrator.",
+  ],
+  EMAIL_LOGIN_REQUIRED: [
+    "ورود فقط با ایمیل و کد یک‌بارمصرف انجام می‌شود.",
+    "Sign in using email and a one-time code.",
+  ],
+  FORBIDDEN: [
+    "به این بخش دسترسی ندارید.",
+    "You do not have access to this section.",
+  ],
+
   DATABASE_NOT_CONFIGURED: [
     "اتصال دیتابیس روی سرور تنظیم نشده است؛ با مدیر سیستم تماس بگیرید.",
     "The database connection is not configured on the server. Contact the administrator.",

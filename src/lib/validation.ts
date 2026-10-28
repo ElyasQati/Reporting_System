@@ -93,30 +93,3 @@ export const settingsSchema = z
       v.weights.timeliness + v.weights.attendance + v.weights.stability === 100,
     { message: "WEIGHTS_MUST_TOTAL_100" },
   );
-export const loginSchema = z.object({
-  username: z.string().trim().normalize("NFKC").min(1).max(80),
-  password: z.string().min(1).max(200),
-});
-const newPassword = z
-  .string()
-  .min(10)
-  .max(72)
-  .refine(
-    (value) => new TextEncoder().encode(value).length <= 72,
-    "PASSWORD_TOO_LONG",
-  );
-export const registrationSchema = z.object({
-  name,
-  username: z
-    .string()
-    .trim()
-    .normalize("NFKC")
-    .min(3)
-    .max(80)
-    .regex(/^[\p{L}\p{N}._-]+$/u),
-  password: newPassword,
-});
-export const passwordSchema = z.object({
-  currentPassword: z.string().min(1),
-  password: newPassword,
-});

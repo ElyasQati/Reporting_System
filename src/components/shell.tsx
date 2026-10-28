@@ -75,12 +75,14 @@ export function Shell({
   view,
   name,
   organization,
+  isSystemAdmin = false,
   onLogout,
   children,
 }: {
   view: string;
   name: string;
   organization: string;
+  isSystemAdmin?: boolean;
   onLogout: () => void;
   children: React.ReactNode;
 }) {
@@ -173,12 +175,13 @@ export function Shell({
           </span>
           {link("archive", "archive", FolderIcon)}
           {link("settings", "settings", SettingsIcon)}
+          {isSystemAdmin && link("invitations", "invitations", UsersIcon)}
         </nav>
         <div className="sidebar-footer">
           <span className="avatar">{name.slice(0, 1)}</span>
           <div>
             <strong>{name}</strong>
-            <small>{t("credentials")}</small>
+            <small>{t(isSystemAdmin ? "adminRole" : "memberRole")}</small>
           </div>
           <IconButton label={t("logout")} onClick={onLogout}>
             <LogoutIcon />

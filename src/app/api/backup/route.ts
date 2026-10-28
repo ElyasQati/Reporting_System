@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { api } from "@/lib/http";
 import { workspaceCollections } from "@/lib/workspace";
 export const GET = api(async (_request, user) => {
-  if (user.role !== "admin")
+  if (user.role === "viewer")
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   const c = await workspaceCollections(user._id);
   const client = await global.mongoConnection!;

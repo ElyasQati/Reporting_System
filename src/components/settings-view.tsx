@@ -29,8 +29,6 @@ export function SettingsView({
   const [form, setForm] = useState(data.settings);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [password, setPassword] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const run = async (key: string, task: () => Promise<void>) => {
     if (busy) return;
@@ -206,46 +204,15 @@ export function SettingsView({
       </form>
       <section className="settings-section">
         <div>
-          <h2>{t("changePassword")}</h2>
-          <p>{t("minPassword")}</p>
+          <h2>{t("emailAccount")}</h2>
+          <p>{t("emailAccountHint")}</p>
         </div>
-        <form
-          className="settings-panel"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void run("password", async () => {
-              await request("/api/auth", {
-                method: "PATCH",
-                body: JSON.stringify({ currentPassword, password }),
-              });
-              setPassword("");
-              setCurrentPassword("");
-            });
-          }}
-        >
-          <Field label={t("currentPassword")}>
-            <input
-              type="password"
-              value={currentPassword}
-              required
-              autoComplete="current-password"
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-          </Field>
-          <Field label={t("newPassword")}>
-            <input
-              type="password"
-              value={password}
-              minLength={10}
-              required
-              autoComplete="new-password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </Field>
-          <Button type="submit" disabled={Boolean(busy)}>
-            {t(busy === "password" ? "saving" : "changePassword")}
-          </Button>
-        </form>
+        <div className="settings-panel">
+          <p dir="ltr">{data.user.email}</p>
+          <p className="muted">
+            {t(data.user.isSystemAdmin ? "adminRole" : "memberRole")}
+          </p>
+        </div>
       </section>
       <section className="settings-section">
         <div>

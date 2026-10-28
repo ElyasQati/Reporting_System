@@ -1,3 +1,4 @@
+import { loginPage, resetCooldown, ADMIN_EMAIL } from "./email-helpers";
 import { test, expect } from "@playwright/test";
 import { dateKey, shiftDate, weekStart } from "../../src/lib/dates";
 const origin = "http://localhost:3100";
@@ -6,15 +7,8 @@ test("Authentication, bilingual forms, weekly uniqueness, archive and theme", as
   request,
 }) => {
   expect((await request.get("/api/workspace")).status()).toBe(401);
-  await page.goto("/en");
-  await page.getByLabel("Username", { exact: true }).fill("test-admin");
-  await page
-    .getByLabel("Password", { exact: true })
-    .fill("Test-Only-Password-2026!");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Overview", exact: true }),
-  ).toBeVisible();
+  await resetCooldown(ADMIN_EMAIL);
+  await loginPage(page, ADMIN_EMAIL);
   const api = page.request;
   const post = async (entity: string, data: object) => {
     const response = await api.post(`/api/${entity}`, {
