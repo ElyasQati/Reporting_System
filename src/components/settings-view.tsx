@@ -220,7 +220,11 @@ export function SettingsView({
           <p>{t("backupDescription")}</p>
         </div>
         <div className="settings-panel">
-          <a className="button button-secondary" href="/api/backup" download>
+          <a
+            className="button button-secondary"
+            href={`/api/backup?locale=${locale}`}
+            download
+          >
             <DownloadIcon />
             {t("downloadBackup")}
           </a>
@@ -228,7 +232,7 @@ export function SettingsView({
           <Field label={t("file")}>
             <input
               type="file"
-              accept="application/json,.json"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/json,.json"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </Field>
@@ -236,9 +240,15 @@ export function SettingsView({
             disabled={!file || Boolean(busy)}
             onClick={() =>
               void run("restore", async () => {
+                const excel = file!.name.toLowerCase().endsWith(".xlsx");
                 await request("/api/backup/restore", {
                   method: "POST",
-                  body: await file!.text(),
+                  headers: {
+                    "Content-Type": excel
+                      ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      : "application/json",
+                  },
+                  body: excel ? await file!.arrayBuffer() : await file!.text(),
                 });
                 await onSaved();
               })

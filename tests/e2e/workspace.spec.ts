@@ -1,6 +1,7 @@
 import { loginPage, resetCooldown, ADMIN_EMAIL } from "./email-helpers";
 import { test, expect } from "@playwright/test";
 import { dateKey, shiftDate, weekStart } from "../../src/lib/dates";
+import { readBackupWorkbook } from "../../src/lib/backup-workbook";
 const origin = "http://localhost:3100";
 test("Authentication, bilingual forms, weekly uniqueness, archive and theme", async ({
   page,
@@ -201,12 +202,15 @@ test("Authentication, bilingual forms, weekly uniqueness, archive and theme", as
   ).toBe(200);
   const backup = await api.get("/api/backup");
   expect(backup.ok()).toBe(true);
-  expect((await backup.json()).version).toBe(2);
+  const snapshot = (await readBackupWorkbook(await backup.body())) as {
+    version: number;
+  };
+  expect(snapshot.version).toBe(2);
   expect(
     (
       await api.post("/api/backup/restore", {
         headers: { origin },
-        data: await backup.json(),
+        data: snapshot,
       })
     ).status(),
   ).toBe(409);

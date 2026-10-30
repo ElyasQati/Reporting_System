@@ -8,6 +8,11 @@ import {
 } from "./email-helpers";
 import { test, expect, type APIRequestContext } from "@playwright/test";
 import { dateKey, shiftDate } from "../../src/lib/dates";
+import {
+  readBackupWorkbook,
+  XLSX_CONTENT_TYPE,
+  type BackupSnapshot,
+} from "../../src/lib/backup-workbook";
 
 const origin = "http://localhost:3100";
 const headers = { origin };
@@ -172,7 +177,9 @@ test("self registration creates isolated workspaces and protects every data path
     expect(emptyB.settings.organization).toBe("Report Desk");
     const ownerB = emptyB.settings._id;
     expect(ownerB).not.toBe(ownerA);
-    const emptyBackup = await (await apiB.get("/api/backup")).json();
+    const emptyBackup = (await readBackupWorkbook(
+      await (await apiB.get("/api/backup")).body(),
+    )) as BackupSnapshot;
     expect([
       emptyBackup.classes,
       emptyBackup.people,
@@ -304,18 +311,36 @@ test("self registration creates isolated workspaces and protects every data path
     const workspaceC = await (await gamma.request.get("/api/workspace")).json();
     expect(workspaceC.classes).toEqual([]);
     expect(workspaceC.settings._id).not.toBe(ownerA);
-    const backupA = await (await apiA.get("/api/backup")).json();
+    const backupResponse = await apiA.get("/api/backup?locale=en");
+    expect(backupResponse.headers()["content-type"]).toBe(XLSX_CONTENT_TYPE);
+    expect(backupResponse.headers()["content-disposition"]).toContain(".xlsx");
+    const backupBytes = await backupResponse.body();
+    const backupA = (await readBackupWorkbook(backupBytes)) as BackupSnapshot;
     expect(backupA.classes.length).toBe(1);
     expect(backupA.people.length).toBe(2);
     expect(backupA.reports.length).toBe(1);
-    expect(
-      (
-        await gamma.request.post("/api/backup/restore", {
-          headers,
-          data: backupA,
-        })
-      ).status(),
-    ).toBe(200);
+    await pageA.goto("/fa/settings");
+    const downloadReady = pageA.waitForEvent("download");
+    await pageA.getByRole("link", { name: "دانلود بک‌اپ اکسل" }).click();
+    const download = await downloadReady;
+    expect(download.suggestedFilename()).toMatch(/-fa\.xlsx$/);
+    await download.saveAs(test.info().outputPath("backup-fa.xlsx"));
+    const pageC = await gamma.newPage();
+    await pageC.goto("/fa/settings");
+    await pageC.getByLabel("فایل نسخهٔ پشتیبان").setInputFiles({
+      name: "backup.xlsx",
+      mimeType: XLSX_CONTENT_TYPE,
+      buffer: backupBytes,
+    });
+    const restoreReady = pageC.waitForResponse(
+      (r) =>
+        r.url().endsWith("/api/backup/restore") &&
+        r.request().method() === "POST",
+    );
+    await pageC
+      .getByRole("button", { name: "بازیابی نسخهٔ پشتیبان", exact: true })
+      .click();
+    expect((await restoreReady).status()).toBe(200);
     const restored = await (await gamma.request.get("/api/workspace")).json();
     expect(restored.classes.length).toBe(1);
     expect(restored.classes[0]._id).not.toBe(classA);
@@ -327,8 +352,8 @@ test("self registration creates isolated workspaces and protects every data path
     expect(
       (
         await gamma.request.post("/api/backup/restore", {
-          headers,
-          data: backupA,
+          headers: { ...headers, "content-type": XLSX_CONTENT_TYPE },
+          data: backupBytes,
         })
       ).status(),
     ).toBe(409);

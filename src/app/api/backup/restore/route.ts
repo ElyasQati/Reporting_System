@@ -10,6 +10,12 @@ import {
   settingsSchema,
 } from "@/lib/validation";
 import { validDate, weekStart } from "@/lib/dates";
+import {
+  BACKUP_MAX_BYTES,
+  readBackupWorkbook,
+  XLSX_CONTENT_TYPE,
+} from "@/lib/backup-workbook";
+export const runtime = "nodejs";
 const base = z.object({
   _id: z.uuid(),
   createdAt: z.iso.datetime(),
@@ -75,7 +81,36 @@ const backupSchema = z.object({
   settings: settingsSchema,
 });
 export const POST = api(async (request, user) => {
-  const data = backupSchema.parse(await body(request, 50_000_000));
+  let payload: unknown;
+  const contentType = request.headers.get("content-type")?.split(";")[0].trim();
+  if (
+    contentType === XLSX_CONTENT_TYPE ||
+    contentType === "application/octet-stream"
+  ) {
+    const reader = request.body?.getReader();
+    if (!reader) throw new ApiError("INVALID_BACKUP");
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > BACKUP_MAX_BYTES) {
+          await reader.cancel();
+          throw new ApiError("PAYLOAD_TOO_LARGE", 413);
+        }
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    payload = await readBackupWorkbook(Buffer.concat(chunks));
+  } else {
+    // Keep older JSON backups usable during the transition to Excel.
+    payload = await body(request, BACKUP_MAX_BYTES);
+  }
+  const data = backupSchema.parse(payload);
   const c = await workspaceCollections(user._id);
   if (
     (await c.classes.countDocuments()) +

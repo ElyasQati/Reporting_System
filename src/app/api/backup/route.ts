@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { api } from "@/lib/http";
 import { workspaceCollections } from "@/lib/workspace";
 import { isReadOnly } from "@/lib/access";
-export const GET = api(async (_request, user) => {
+import {
+  buildBackupWorkbook,
+  backupSettings,
+  XLSX_CONTENT_TYPE,
+} from "@/lib/backup-workbook";
+export const runtime = "nodejs";
+export const GET = api(async (request, user) => {
   if (isReadOnly(user))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   const c = await workspaceCollections(user._id);
@@ -24,26 +30,25 @@ export const GET = api(async (_request, user) => {
       { readConcern: { level: "snapshot" } },
     ),
   );
-  return new Response(
-    JSON.stringify(
-      {
-        version: 2,
-        exportedAt: new Date().toISOString(),
-        classes: data[0],
-        people: data[1],
-        curricula: data[2],
-        reports: data[3],
-        settings: data[4],
-      },
-      null,
-      2,
-    ),
+  const locale =
+    request.nextUrl.searchParams.get("locale") === "en" ? "en" : "fa";
+  const workbook = buildBackupWorkbook(
     {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="report-desk-${new Date().toISOString().slice(0, 10)}.json"`,
-        "Cache-Control": "no-store",
-      },
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      classes: data[0],
+      people: data[1],
+      curricula: data[2],
+      reports: data[3],
+      settings: backupSettings(data[4]),
     },
+    locale,
   );
+  return new Response(new Uint8Array(await workbook.xlsx.writeBuffer()), {
+    headers: {
+      "Content-Type": XLSX_CONTENT_TYPE,
+      "Content-Disposition": `attachment; filename="report-desk-backup-${new Date().toISOString().slice(0, 10)}-${locale}.xlsx"`,
+      "Cache-Control": "no-store",
+    },
+  });
 });
