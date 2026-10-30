@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { api, ApiError, body } from "@/lib/http";
 import { entities, saveEntity, type Entity } from "@/lib/services";
 import { workspaceCollections } from "@/lib/workspace";
+import { workspaceOwner } from "@/lib/access";
 type Context = { params: Promise<{ entity: string }> };
 export async function GET(request: NextRequest, context: Context) {
   return api(async (req, user) => {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest, context: Context) {
     );
     if (!Number.isInteger(page) || !Number.isInteger(limit))
       throw new ApiError("INVALID_PAGINATION");
-    const c = await workspaceCollections(user._id);
+    const c = await workspaceCollections(workspaceOwner(user));
     const collection = c.collection(entity as Entity);
     const archived = req.nextUrl.searchParams.get("archived") === "true";
     const query: Record<string, unknown> = {

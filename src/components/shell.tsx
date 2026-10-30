@@ -19,6 +19,7 @@ import {
   SunIcon,
   UserIcon,
   UsersIcon,
+  EyeIcon,
 } from "./icons";
 const navigation = [
   { path: "dashboard", key: "dashboard", Icon: HomeIcon },
@@ -76,6 +77,7 @@ export function Shell({
   name,
   organization,
   isSystemAdmin = false,
+  monitor = false,
   onLogout,
   children,
 }: {
@@ -83,6 +85,7 @@ export function Shell({
   name: string;
   organization: string;
   isSystemAdmin?: boolean;
+  monitor?: boolean;
   onLogout: () => void;
   children: React.ReactNode;
 }) {
@@ -114,7 +117,7 @@ export function Shell({
     </Link>
   );
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${monitor ? "monitor-shell" : ""}`}>
       <a className="skip-link" href="#main-content">
         {locale === "fa" ? "پرش به محتوا" : "Skip to content"}
       </a>
@@ -171,17 +174,28 @@ export function Shell({
           <span className="nav-group-label">{t("management")}</span>
           {navigation.map((n) => link(n.path, n.key, n.Icon))}
           <span className="nav-group-label nav-group-bottom">
-            {t("preferences")}
+            {t(monitor ? "monitorPortal" : "preferences")}
           </span>
           {link("archive", "archive", FolderIcon)}
-          {link("settings", "settings", SettingsIcon)}
-          {isSystemAdmin && link("invitations", "invitations", UsersIcon)}
+          {!monitor && link("settings", "settings", SettingsIcon)}
+          {!monitor && link("monitor-access", "monitorAccess", EyeIcon)}
+          {!monitor &&
+            isSystemAdmin &&
+            link("invitations", "invitations", UsersIcon)}
         </nav>
         <div className="sidebar-footer">
           <span className="avatar">{name.slice(0, 1)}</span>
           <div>
             <strong>{name}</strong>
-            <small>{t(isSystemAdmin ? "adminRole" : "memberRole")}</small>
+            <small>
+              {t(
+                monitor
+                  ? "monitorRole"
+                  : isSystemAdmin
+                    ? "adminRole"
+                    : "memberRole",
+              )}
+            </small>
           </div>
           <IconButton label={t("logout")} onClick={onLogout}>
             <LogoutIcon />
@@ -200,9 +214,15 @@ export function Shell({
             >
               <MenuIcon />
             </IconButton>
-            <span>{t("workspace")}</span>
+            <span>{t(monitor ? "monitorPortal" : "workspace")}</span>
             <span className="breadcrumb-slash">/</span>
-            <span className="breadcrumb-current">{t(view as MessageKey)}</span>
+            <span className="breadcrumb-current">
+              {t(
+                view === "monitor-access"
+                  ? "monitorAccess"
+                  : (view as MessageKey),
+              )}
+            </span>
           </div>
           <Appearance view={view} />
         </header>

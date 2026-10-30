@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { api } from "@/lib/http";
 import { workspaceCollections } from "@/lib/workspace";
+import { isReadOnly } from "@/lib/access";
 export const GET = api(async (_request, user) => {
-  if (user.role === "viewer")
+  if (isReadOnly(user))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   const c = await workspaceCollections(user._id);
   const client = await global.mongoConnection!;

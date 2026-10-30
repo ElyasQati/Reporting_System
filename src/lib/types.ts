@@ -1,5 +1,5 @@
 export type Locale = "fa" | "en";
-export type Role = "admin" | "member" | "viewer";
+export type Role = "admin" | "supervisor" | "monitor" | "member" | "viewer";
 export interface Base {
   _id: string;
   ownerId?: string;
@@ -82,8 +82,25 @@ export interface User extends Base {
 export interface Session {
   _id: string;
   userId: string;
+  monitorAccessId?: string;
   expiresAt: Date;
   createdAt: string;
+}
+// Monitor sessions are principals, never user accounts. Their owner is resolved server-side.
+export interface AuthUser extends User {
+  workspaceOwnerId?: string;
+  monitorAccessId?: string;
+}
+export interface MonitorAccess {
+  _id: string;
+  ownerId: string;
+  generation: string;
+  codeHash: string;
+  codeHashes: string[];
+  active: boolean;
+  createdAt: string;
+  revokedAt: string | null;
+  lastUsedAt: string | null;
 }
 export interface Workspace {
   classes: SchoolClass[];

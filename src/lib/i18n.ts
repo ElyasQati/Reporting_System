@@ -1,5 +1,45 @@
 import type { Locale } from "./types";
 export const en = {
+  supervisorLogin: "I am a supervisor",
+  monitorLogin: "I am a monitor",
+  loginRole: "Sign-in role",
+  monitorSignin: "Monitor sign-in",
+  monitorSigninHint: "Enter the access code shared by your supervisor.",
+  monitorCode: "Monitor access code",
+  monitorEnter: "Open monitor workspace",
+  monitorRole: "Monitor · read only",
+  monitorPortal: "Monitor workspace",
+  monitorScope: "Supervisor",
+  monitorReadOnly:
+    "View reports and information from this supervisor. Editing is unavailable.",
+  monitorAccess: "Monitor access",
+  monitorAccessDescription:
+    "Give your monitor read-only access to your workspace.",
+  monitorCodeCreate: "Create monitor code",
+  monitorCodeReplace: "Replace access code",
+  monitorCodeRevoke: "Revoke monitor access",
+  monitorCodeReady: "Your monitor code is ready",
+  monitorCodeHint:
+    "Copy this code now and share it privately with your monitor. It is shown only once.",
+  monitorCodeSecurity:
+    "Anyone with this code can view your information. No email or account is required. The code remains valid until you revoke or replace it.",
+  monitorCodeRotation:
+    "Replacing or revoking the code immediately ends access through the previous code and its sessions.",
+  monitorAccessActive: "Monitor access is active",
+  monitorAccessInactive: "Monitor access is inactive",
+  monitorAccessEmpty: "No monitor code has been created yet.",
+  monitorLastUsed: "Last sign-in",
+  monitorReplaceConfirm:
+    "Create a new code and end all sessions using the previous code?",
+  monitorRevokeConfirm: "End monitor access and all sessions using this code?",
+  monitorPermissions: "Monitor permissions",
+  monitorPermissionsHint:
+    "Reports, classes, teachers, supervisors, books and analytics can be viewed. Adding, editing, deleting and restoring data are blocked.",
+  monitorPeriodHint: "Report figures follow the selected month and year.",
+  monitorPending: "Classes awaiting this week's report",
+  monitorNoEmail: "Sign in using only the code provided by your supervisor.",
+  monitorNoReports: "No reports have been recorded for this period.",
+  monitorNoClasses: "This supervisor has no classes to show here.",
   invitations: "Invitations",
   invitationsDescription:
     "Create an email-specific invitation for a new supervisor.",
@@ -262,6 +302,45 @@ export const en = {
 };
 export type MessageKey = keyof typeof en;
 export const fa: Record<MessageKey, string> = {
+  supervisorLogin: "سرنگران هستم",
+  monitorLogin: "مانیتور هستم",
+  loginRole: "نوع ورود",
+  monitorSignin: "ورود مانیتور",
+  monitorSigninHint: "کد دسترسی را که سرنگران‌تان فرستاده است وارد کنید.",
+  monitorCode: "کد دسترسی مانیتور",
+  monitorEnter: "ورود به فضای مانیتور",
+  monitorRole: "مانیتور · فقط مشاهده",
+  monitorPortal: "فضای مانیتور",
+  monitorScope: "سرنگران مربوطه",
+  monitorReadOnly:
+    "گزارش‌ها و اطلاعات همین سرنگران را مشاهده می‌کنید. امکان تغییر اطلاعات وجود ندارد.",
+  monitorAccess: "دسترسی مانیتور",
+  monitorAccessDescription:
+    "برای مانیتور خود دسترسی مشاهدهٔ اطلاعات‌تان را ایجاد کنید.",
+  monitorCodeCreate: "ایجاد کد مانیتور",
+  monitorCodeReplace: "تعویض کد دسترسی",
+  monitorCodeRevoke: "لغو دسترسی مانیتور",
+  monitorCodeReady: "کد مانیتور آماده است",
+  monitorCodeHint:
+    "همین حالا کد را کاپی کنید و خصوصی به مانیتور خود بفرستید. کد فقط همین بار نمایش داده می‌شود.",
+  monitorCodeSecurity:
+    "هر کسی که این کد را داشته باشد اطلاعات شما را می‌بیند. ایمیل و حساب لازم نیست. کد تا زمان لغو یا تعویض معتبر است.",
+  monitorCodeRotation:
+    "با لغو یا تعویض کد، دسترسی از طریق کد قبلی و نشست‌های آن فوراً قطع می‌شود.",
+  monitorAccessActive: "دسترسی مانیتور فعال است",
+  monitorAccessInactive: "دسترسی مانیتور غیرفعال است",
+  monitorAccessEmpty: "هنوز کدی برای مانیتور ایجاد نشده است.",
+  monitorLastUsed: "آخرین ورود",
+  monitorReplaceConfirm: "کد جدید ایجاد و تمام نشست‌های کد قبلی قطع شود؟",
+  monitorRevokeConfirm: "دسترسی مانیتور و تمام نشست‌های این کد قطع شود؟",
+  monitorPermissions: "صلاحیت‌های مانیتور",
+  monitorPermissionsHint:
+    "گزارش‌ها، صنف‌ها، اساتید، نگران‌های صنف، کتاب‌ها و تحلیل‌ها قابل مشاهده‌اند. افزودن، ویرایش، حذف و بازیابی اطلاعات مسدود است.",
+  monitorPeriodHint: "آمار گزارش‌ها مربوط به ماه و سال انتخاب‌شده است.",
+  monitorPending: "صنف‌های منتظر گزارش این هفته",
+  monitorNoEmail: "ورود فقط با کدی انجام می‌شود که سرنگران‌تان فرستاده است.",
+  monitorNoReports: "برای این دوره گزارشی ثبت نشده است.",
+  monitorNoClasses: "این سرنگران در این بخش صنفی برای نمایش ندارد.",
   invitations: "مدیریت دعوت‌ها",
   invitationsDescription: "برای سرنگران جدید، دعوت مخصوص ایمیل خودش بسازید.",
   sendCode: "ارسال کد ورود",
@@ -521,6 +600,10 @@ export const fa: Record<MessageKey, string> = {
   reportDescription: "یک صنف، یک هفته و گزارشی قابل اتکا از حاضری.",
 };
 export const errors: Record<string, [string, string]> = {
+  MONITOR_CODE_INVALID: [
+    "کد دسترسی اشتباه است یا توسط سرنگران لغو شده است.",
+    "The access code is incorrect or has been revoked by the supervisor.",
+  ],
   EMAIL_NOT_CONFIGURED: [
     "ارسال ایمیل روی سرور تنظیم نشده است؛ با ادمین تماس بگیرید.",
     "Email delivery is not configured. Contact the administrator.",

@@ -23,6 +23,8 @@ import {
 } from "./data-views";
 import { SettingsView } from "./settings-view";
 import { InvitationsView } from "./invitations-view";
+import { MonitorAccessView } from "./monitor-access-view";
+import { MonitorWorkspace } from "./monitor-workspace";
 const descriptions: Record<string, MessageKey> = {
   dashboard: "overviewDescription",
   classes: "classDescription",
@@ -34,6 +36,7 @@ const descriptions: Record<string, MessageKey> = {
   archive: "archiveDescription",
   settings: "preferences",
   invitations: "invitationsDescription",
+  "monitor-access": "monitorAccessDescription",
 };
 export function WorkspaceApp({ view }: { view: string }) {
   const { locale, t } = useI18n();
@@ -97,6 +100,7 @@ export function WorkspaceApp({ view }: { view: string }) {
     void load();
     const controller = pendingRequest.current;
     const expire = () => {
+      pendingRequest.current?.abort();
       setData(null);
       setStatus("login");
       setEditor(null);
@@ -133,6 +137,20 @@ export function WorkspaceApp({ view }: { view: string }) {
       window.removeEventListener("pageshow", restoredPage);
     };
   }, [load]);
+  useEffect(() => {
+    if (data?.user.role !== "monitor") return;
+    const refreshVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    const timer = window.setInterval(refreshVisible, 15000);
+    window.addEventListener("focus", refreshVisible);
+    document.addEventListener("visibilitychange", refreshVisible);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refreshVisible);
+      document.removeEventListener("visibilitychange", refreshVisible);
+    };
+  }, [data?.user.role, load]);
   const logout = async () => {
     try {
       await request("/api/auth", { method: "DELETE" });
@@ -211,6 +229,26 @@ export function WorkspaceApp({ view }: { view: string }) {
   const reports = legacy
     ? data.reports.filter((r) => !r.reportDate && !isArchived(r))
     : periodReports;
+  if (data.user.role === "monitor")
+    return (
+      <MonitorWorkspace
+        data={data}
+        view={view}
+        reports={periodReports}
+        period={period}
+        onPeriod={(value) => {
+          setRefreshing(true);
+          setPeriod(value);
+        }}
+        refresh={() => {
+          setRefreshing(true);
+          void load();
+        }}
+        refreshing={refreshing}
+        error={error}
+        onLogout={() => void logout()}
+      />
+    );
   const creation: Record<string, Editor> = {
     classes: { entity: "classes" },
     reports: { entity: "reports" },
@@ -244,7 +282,13 @@ export function WorkspaceApp({ view }: { view: string }) {
     >
       <div className="page-heading">
         <div>
-          <h1>{t(view as MessageKey)}</h1>
+          <h1>
+            {t(
+              view === "monitor-access"
+                ? "monitorAccess"
+                : (view as MessageKey),
+            )}
+          </h1>
           <p>{t(descriptions[view])}</p>
         </div>
         <div className="page-actions">
@@ -289,6 +333,7 @@ export function WorkspaceApp({ view }: { view: string }) {
             {errorText("FORBIDDEN", locale)}
           </p>
         ))}
+      {view === "monitor-access" && <MonitorAccessView />}
       {data.legacyCount > 0 && view === "reports" && (
         <div className="inline-notice">
           {t("legacyHint")}

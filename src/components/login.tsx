@@ -9,6 +9,8 @@ import { Button, Field } from "./ui";
 import { ArrowRightIcon, CheckIcon, LockIcon } from "./icons";
 export function Login({ onLogin }: { onLogin: () => void }) {
   const { t, locale } = useI18n();
+  const [mode, setMode] = useState<"supervisor" | "monitor">("supervisor");
+  const [monitorCode, setMonitorCode] = useState("");
   const [registering, setRegistering] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -68,6 +70,14 @@ export function Login({ onLogin }: { onLogin: () => void }) {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     void run(async () => {
+      if (mode === "monitor") {
+        await request("/api/auth/monitor", {
+          method: "POST",
+          body: JSON.stringify({ code: monitorCode }),
+        });
+        onLogin();
+        return;
+      }
       if (!challenge) {
         await send();
         return;
@@ -112,23 +122,74 @@ export function Login({ onLogin }: { onLogin: () => void }) {
           <p className="story-footnote">{t("welcome")}</p>
         </section>
         <section className="login-form-panel">
+          <div
+            className="login-role-switch"
+            role="group"
+            aria-label={t("loginRole")}
+          >
+            {(["supervisor", "monitor"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={mode === value}
+                disabled={busy}
+                onClick={() => {
+                  setMode(value);
+                  setChallenge(null);
+                  setError("");
+                  setCode("");
+                  setMonitorCode("");
+                }}
+              >
+                {t(value === "monitor" ? "monitorLogin" : "supervisorLogin")}
+              </button>
+            ))}
+          </div>
           <div className="login-form-heading">
             <LockIcon />
             <h2>
-              {t(challenge ? "otpHeading" : registering ? "signup" : "signin")}
+              {t(
+                mode === "monitor"
+                  ? "monitorSignin"
+                  : challenge
+                    ? "otpHeading"
+                    : registering
+                      ? "signup"
+                      : "signin",
+              )}
             </h2>
             <p>
               {t(
-                challenge
-                  ? "otpHint"
-                  : registering
-                    ? "emailSignupHint"
-                    : "emailSigninHint",
+                mode === "monitor"
+                  ? "monitorSigninHint"
+                  : challenge
+                    ? "otpHint"
+                    : registering
+                      ? "emailSignupHint"
+                      : "emailSigninHint",
               )}
             </p>
           </div>
           <form onSubmit={submit} aria-busy={busy}>
-            {challenge ? (
+            {mode === "monitor" ? (
+              <Field label={t("monitorCode")}>
+                <input
+                  key="monitor"
+                  required
+                  value={monitorCode}
+                  onChange={(event) =>
+                    setMonitorCode(event.target.value.toUpperCase())
+                  }
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  dir="ltr"
+                  minLength={25}
+                  maxLength={25}
+                  aria-describedby="monitor-login-help"
+                />
+              </Field>
+            ) : challenge ? (
               <>
                 <p className="otp-destination" dir="ltr">
                   {email.trim().toLowerCase()}
@@ -211,11 +272,23 @@ export function Login({ onLogin }: { onLogin: () => void }) {
               </p>
             )}
             <Button variant="primary" disabled={busy} type="submit">
-              {t(busy ? "loading" : challenge ? "verifyCode" : "sendCode")}
+              {t(
+                busy
+                  ? "loading"
+                  : mode === "monitor"
+                    ? "monitorEnter"
+                    : challenge
+                      ? "verifyCode"
+                      : "sendCode",
+              )}
               <ArrowRightIcon className="directional-icon" />
             </Button>
           </form>
-          {challenge ? (
+          {mode === "monitor" ? (
+            <p id="monitor-login-help" className="muted small">
+              {t("monitorNoEmail")}
+            </p>
+          ) : challenge ? (
             <div className="otp-actions">
               <Button
                 variant="ghost"
@@ -252,7 +325,9 @@ export function Login({ onLogin }: { onLogin: () => void }) {
               {t(registering ? "switchToSignin" : "switchToSignup")}
             </Button>
           )}
-          <p className="login-security">{t("credentials")}</p>
+          <p className="login-security">
+            {t(mode === "monitor" ? "monitorReadOnly" : "credentials")}
+          </p>
         </section>
       </main>
       <footer className="login-footer">

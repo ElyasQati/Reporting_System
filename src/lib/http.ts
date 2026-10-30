@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { MongoServerError } from "mongodb";
 import { currentUser } from "./auth";
-import type { User } from "./types";
+import type { AuthUser } from "./types";
 import { ApiError } from "./errors";
 import { safeErrorDetails } from "./database-errors";
-import { isSystemAdmin } from "./access";
+import { isSystemAdmin, isReadOnly } from "./access";
 export { ApiError } from "./errors";
-type Handler = (request: NextRequest, user: User) => Promise<Response>;
-export function api(handler: Handler, mutation = false, adminOnly = false) {
+type Handler = (request: NextRequest, user: AuthUser) => Promise<Response>;
+export function api(
+  handler: Handler,
+  mutation = false,
+  adminOnly = false,
+  allowReadOnlyLogout = false,
+) {
   return async (request: NextRequest) => {
     try {
       if (mutation) {
@@ -20,7 +25,7 @@ export function api(handler: Handler, mutation = false, adminOnly = false) {
       if (!user) throw new ApiError("UNAUTHORIZED", 401);
       if (
         (adminOnly && !isSystemAdmin(user)) ||
-        (mutation && user.role === "viewer")
+        (mutation && isReadOnly(user) && !allowReadOnlyLogout)
       )
         throw new ApiError("FORBIDDEN", 403);
       return await handler(request, user);

@@ -103,7 +103,7 @@ test("email verification, one-use invitations, administrator controls and legacy
     expect((await verify(challenge.challengeId, otp)).status()).toBe(401);
     // Concurrent responses do not overwrite the session cookie from the successful response.
     const memberWorkspace = await (await api.get("/api/workspace")).json();
-    expect(memberWorkspace.user.role).toBe("member");
+    expect(memberWorkspace.user.role).toBe("supervisor");
     expect(memberWorkspace.user.isSystemAdmin).toBe(false);
     expect(memberWorkspace.settings._id).not.toBe(adminWorkspace.settings._id);
     expect([

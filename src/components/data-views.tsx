@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { ReadOnlyContext } from "./read-only";
 import { toast } from "sonner";
 import { displayDate, displayTime, num } from "@/lib/client";
 import { attendance, rankPeople } from "@/lib/analytics";
@@ -35,6 +36,16 @@ export function RowActions({
   archived?: boolean;
 }) {
   const { t } = useI18n();
+  const readOnly = useContext(ReadOnlyContext);
+  if (readOnly)
+    return (
+      <IconButton
+        label={t("details")}
+        onClick={() => readOnly.details(entity, record)}
+      >
+        <EyeIcon />
+      </IconButton>
+    );
   return (
     <div className="row-actions">
       {archived ? (
@@ -117,6 +128,7 @@ export function ClassesView({
   archived?: boolean;
 }) {
   const { t, locale } = useI18n();
+  const readOnly = useContext(ReadOnlyContext);
   const [teacher, setTeacher] = useState("");
   const [supervisor, setSupervisor] = useState("");
   const [page, setPage] = useState(0);
@@ -181,7 +193,7 @@ export function ClassesView({
         </span>
       </div>
       {!rows.length ? (
-        <Empty text={t("noClasses")} />
+        <Empty text={t(readOnly ? "monitorNoClasses" : "noClasses")} />
       ) : (
         <div className="table-scroll">
           <table className="classes-table">
@@ -345,6 +357,7 @@ export function ReportsView({
   archived?: boolean;
 }) {
   const { t, locale } = useI18n();
+  const readOnly = useContext(ReadOnlyContext);
   const [classId, setClassId] = useState("");
   const [curriculumId, setCurriculumId] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -454,7 +467,7 @@ export function ReportsView({
         </span>
       </div>
       {!rows.length ? (
-        <Empty text={t("noReports")} />
+        <Empty text={t(readOnly ? "monitorNoReports" : "noReports")} />
       ) : (
         <div className="table-scroll">
           <table>
@@ -527,7 +540,7 @@ export function ReportsView({
                       </Pill>
                     </td>
                     <td>
-                      {inherited ? (
+                      {inherited && !readOnly ? (
                         <div className="row-actions">
                           <span className="muted small">
                             {t("restoreHint")}

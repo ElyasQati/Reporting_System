@@ -1,4 +1,18 @@
-# Current verification — invitation-only email login (2026-10-28)
+# Current verification — supervisor and monitor access (2026-10-30)
+
+Production build, TypeScript and ESLint passed. All 24 unit tests passed. The existing email authentication, tenancy and workspace browser scenarios passed together. The new monitor scenario passed separately against the production build after correcting its fixture helper to retain the submitted fields (the create-entity API returns only its ID).
+
+The monitor scenario uses two invited supervisors and independent browser contexts. It verifies code-only login without an email or new user record, unique codes across owners, server-resolved shared ownership, ignored ownership/role spoofing, no cross-workspace reads, every entity's create/edit/archive/restore/delete denial, settings/backup/invitation/code-management denial, report details/topics, Excel export, old-year empty states, archived records (including reports inherited from archived classes), hidden mutation controls, and safe handling of direct settings URLs. It also checks Persian RTL, English LTR, theme switching, reduced motion, 375px/768px/landscape layouts with no page overflow, code replacement invalidating multiple sessions, revocation, monitor logout, two concurrent code creations leaving exactly one valid code, no inherited administrator privileges and loss of monitor access when the issuing account is disabled.
+
+All database changes and email messages in these scenarios are confined to guarded disposable `report_desk_test_*` databases and a loopback SMTP mailbox. Teardown drops the test databases and stops the app/mailbox servers. Production accounts, data, SMTP credentials and Vercel settings were not changed by these tests.
+
+Live monitor browser captures and DOM snapshots are in ignored `.taste-skill/email-qa/monitor-*`. The Taste `achromatic-ledger` direction, seed 1500409820, retains the existing fonts/tokens and Astra icons. After the functional tests, a CSS-only phone-density adjustment was built successfully and verified by rendering the captured DOM with the final source stylesheet. Final Persian 390px dark inspection passed with zero failures/warnings. English desktop/tablet/phone inspection and images are under `.taste-skill/monitor/`. The 11–12px secondary labels and table metadata are deliberate; primary values/data are 13–30px. The inspector's desktop no-data-hue warning is a false chart detection on an overview with no chart; the coverage figure uses the brand accent and navigation stays neutral.
+
+The earlier notes below describe previous releases and are retained as history.
+
+---
+
+# Invitation-only email login (2026-10-28)
 
 The production build and TypeScript validation passed. ESLint passed; the changed backup route and final test helper also passed a focused lint check. All 22 unit tests passed. All three browser scenarios passed against the production build: the OTP/invitation scenario and the existing workspace scenario passed together, then the tenancy scenario passed after correcting a legacy admin-only check on workspace backup export.
 

@@ -15,7 +15,12 @@ export async function GET() {
   }
 }
 // Password sign-in and public password registration are deliberately unavailable.
-export const DELETE = api(async () => {
-  await destroySession();
-  return NextResponse.json({ ok: true });
-}, true);
+export const DELETE = api(
+  async () => {
+    await destroySession();
+    return NextResponse.json({ ok: true });
+  },
+  true,
+  false,
+  true,
+);

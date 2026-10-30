@@ -9,6 +9,7 @@ import type {
   User,
   Invitation,
   EmailChallenge,
+  MonitorAccess,
 } from "./types";
 declare global {
   var mongoConnection: Promise<MongoClient> | undefined;
@@ -46,6 +47,7 @@ export async function collections() {
     sessions: db.collection<Session>("sessions"),
     invitations: db.collection<Invitation>("invitations"),
     emailChallenges: db.collection<EmailChallenge>("email_challenges"),
+    monitorAccess: db.collection<MonitorAccess>("monitor_access"),
   };
 }
 export async function ensureIndexes() {
@@ -64,6 +66,7 @@ export async function ensureIndexes() {
     ),
     c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     ...emailIndexes(c),
+    ...monitorIndexes(c),
     c.reports.createIndex(
       { ownerId: 1, classId: 1, weekStart: 1 },
       {
@@ -99,6 +102,24 @@ export async function ensureIndexes() {
       if (existing.some((index) => index.name === name))
         await collection.dropIndex(name);
   }
+}
+
+function monitorIndexes(c: Awaited<ReturnType<typeof collections>>) {
+  return [
+    c.monitorAccess.createIndex({ codeHashes: 1 }, { unique: true }),
+    c.monitorAccess.createIndex({ generation: 1 }, { unique: true }),
+    c.monitorAccess.createIndex({ ownerId: 1 }, { unique: true }),
+    c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+  ];
+}
+let monitorIndexPromise: Promise<unknown> | undefined;
+export async function ensureMonitorIndexes() {
+  const c = await collections();
+  monitorIndexPromise ??= Promise.all(monitorIndexes(c)).catch((error) => {
+    monitorIndexPromise = undefined;
+    throw error;
+  });
+  await monitorIndexPromise;
 }
 
 function emailIndexes(c: Awaited<ReturnType<typeof collections>>) {

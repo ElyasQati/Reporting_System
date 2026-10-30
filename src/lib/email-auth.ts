@@ -177,7 +177,7 @@ export async function verifyEmailCode(
       const role =
         challenge.email === ADMIN_EMAIL
           ? ("admin" as const)
-          : ("member" as const);
+          : ("supervisor" as const);
       if (!account) {
         account = {
           ...base(),

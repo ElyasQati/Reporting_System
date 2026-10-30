@@ -1,12 +1,13 @@
-import { publicUser } from "@/lib/access";
+import { publicUser, workspaceOwner } from "@/lib/access";
 import { NextResponse } from "next/server";
 import { api, ApiError } from "@/lib/http";
 import { workspaceCollections, initialSettings } from "@/lib/workspace";
 import { calendarParts, closedWeeks, dateKey, monthBounds } from "@/lib/dates";
 export const GET = api(async (request, user) => {
-  const c = await workspaceCollections(user._id);
+  const ownerId = workspaceOwner(user);
+  const c = await workspaceCollections(ownerId);
   const settings =
-    (await c.settings.findOne({ _id: user._id })) ?? initialSettings(user._id);
+    (await c.settings.findOne({ _id: ownerId })) ?? initialSettings(ownerId);
   const calendar =
     request.nextUrl.searchParams.get("calendar") === "persian"
       ? "persian"
