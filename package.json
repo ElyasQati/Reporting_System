@@ -12,6 +12,7 @@
     "test:e2e": "playwright test",
     "setup": "tsx scripts/setup.ts",
     "migrate": "tsx scripts/migrate.ts",
+    "migrate:admin": "tsx scripts/migrate-administrator.ts",
     "check:db": "tsx scripts/check-db.ts",
     "test:integration": "tsx --env-file=.env scripts/verify-domain.ts",
     "format": "prettier --write src scripts tests *.ts *.mjs",

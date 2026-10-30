@@ -6,6 +6,8 @@ import { digest } from "./auth";
 import { ApiError } from "./errors";
 import { limitAttempts } from "./email-auth";
 import type { AuthUser, MonitorAccess } from "./types";
+import { ensureAdministratorMigration } from "./administrator";
+import { RETIRED_ADMIN_EMAIL } from "./access";
 
 export const monitorCodeSchema = z.object({
   code: z
@@ -65,6 +67,7 @@ export async function verifyMonitorCode(
   code: string,
   address: string,
 ): Promise<AuthUser> {
+  await ensureAdministratorMigration();
   await ensureMonitorIndexes();
   await limitAttempts(`monitor-login:${digest(address)}`, 20);
   const c = await collections();
@@ -77,6 +80,7 @@ export async function verifyMonitorCode(
   if (
     !owner?.emailVerifiedAt ||
     !owner.email ||
+    owner.email === RETIRED_ADMIN_EMAIL ||
     owner.role === "viewer" ||
     owner.role === "monitor"
   )

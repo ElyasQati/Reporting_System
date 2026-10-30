@@ -1,12 +1,15 @@
 import nextEnv from "@next/env";
 import { ensureIndexes } from "../src/lib/db";
+import { ensureAdministratorMigration } from "../src/lib/administrator";
+import { ADMIN_EMAIL } from "../src/lib/access";
 nextEnv.loadEnvConfig(process.cwd());
 // Email accounts are created only after OTP verification. Legacy accounts and
 // their ownership are deliberately preserved; setup never reassigns their data.
 ensureIndexes()
+  .then(ensureAdministratorMigration)
   .then(() =>
     console.log(
-      "Indexes ready. Sign in with elyasqati527@gmail.com to create the administrator's empty workspace.",
+      `Indexes ready. Sign in with ${ADMIN_EMAIL}. Existing administrator workspace ownership is preserved.`,
     ),
   )
   .catch((error) => {

@@ -600,6 +600,10 @@ export const fa: Record<MessageKey, string> = {
   reportDescription: "یک صنف، یک هفته و گزارشی قابل اتکا از حاضری.",
 };
 export const errors: Record<string, [string, string]> = {
+  ADMIN_TRANSFER_CONFLICT: [
+    "ایمیل جدید به حساب دیگری متصل است؛ انتقال ادمین باید بدون بازنویسی اطلاعات بررسی شود.",
+    "The new administrator email belongs to another account. Resolve the transfer without overwriting either workspace.",
+  ],
   MONITOR_CODE_INVALID: [
     "کد دسترسی اشتباه است یا توسط سرنگران لغو شده است.",
     "The access code is incorrect or has been revoked by the supervisor.",

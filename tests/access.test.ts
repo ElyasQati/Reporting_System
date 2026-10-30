@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ADMIN_EMAIL,
+  RETIRED_ADMIN_EMAIL,
   isReadOnly,
   isSystemAdmin,
   publicUser,
@@ -9,6 +10,24 @@ import {
 import type { AuthUser } from "../src/lib/types";
 
 describe("monitor principals", () => {
+  it("grants administrator privileges only to the verified replacement email", () => {
+    expect(ADMIN_EMAIL).toBe("reportingsystem.af@gmail.com");
+    expect(
+      isSystemAdmin({
+        email: ADMIN_EMAIL,
+        emailVerifiedAt: "2026-10-31",
+        role: "admin",
+      }),
+    ).toBe(true);
+    expect(
+      isSystemAdmin({
+        email: RETIRED_ADMIN_EMAIL,
+        emailVerifiedAt: "2026-10-31",
+        role: "admin",
+      }),
+    ).toBe(false);
+    expect(isSystemAdmin({ email: ADMIN_EMAIL, role: "admin" })).toBe(false);
+  });
   const monitor: AuthUser = {
     _id: "session-generation",
     workspaceOwnerId: "supervisor-a",

@@ -3,7 +3,8 @@ import { compare, hash } from "bcryptjs";
 import { MongoServerError } from "mongodb";
 import { collections, ensureAuthIndexes } from "./db";
 import { digest } from "./auth";
-import { ADMIN_EMAIL } from "./access";
+import { ADMIN_EMAIL, RETIRED_ADMIN_EMAIL } from "./access";
+import { ensureAdministratorMigration } from "./administrator";
 import { ApiError } from "./errors";
 import { sendLoginCode } from "./mail";
 import { initialSettings } from "./workspace";
@@ -39,6 +40,9 @@ export async function issueInvitation(
   createdBy: string,
 ) {
   await ensureAuthIndexes();
+  await ensureAdministratorMigration();
+  if (email === RETIRED_ADMIN_EMAIL)
+    throw new ApiError("ACCOUNT_DISABLED", 403);
   const c = await collections();
   if (email === ADMIN_EMAIL || (await c.users.findOne({ email })))
     throw new ApiError("EMAIL_ALREADY_REGISTERED", 409);
@@ -69,6 +73,9 @@ export async function requestEmailCode(
   address: string,
 ) {
   await ensureAuthIndexes();
+  await ensureAdministratorMigration();
+  if (input.email === RETIRED_ADMIN_EMAIL)
+    throw new ApiError("ACCOUNT_DISABLED", 403);
   await limitAttempts(`otp-ip:${digest(address)}`, 30);
   await limitAttempts(`otp-email:${digest(input.email)}`, 10);
   const c = await collections();
@@ -139,6 +146,7 @@ export async function verifyEmailCode(
   code: string,
   address: string,
 ) {
+  await ensureAdministratorMigration();
   await limitAttempts(`verify-ip:${digest(address)}`, 60);
   const c = await collections();
   const challenge = await c.emailChallenges.findOneAndUpdate(
@@ -151,7 +159,11 @@ export async function verifyEmailCode(
     { $inc: { attempts: 1 } },
     { returnDocument: "after" },
   );
-  if (!challenge || !(await compare(code, challenge.codeHash)))
+  if (
+    !challenge ||
+    challenge.email === RETIRED_ADMIN_EMAIL ||
+    !(await compare(code, challenge.codeHash))
+  )
     throw new ApiError("OTP_INVALID", 401);
   const client = await global.mongoConnection!;
   const user = await client.withSession((session) =>

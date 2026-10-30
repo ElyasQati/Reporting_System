@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       "local";
     const input = emailVerifySchema.parse(await body(request, 10000));
     const user = await verifyEmailCode(input.challengeId, input.code, address);
-    await createSession(user._id);
+    await createSession(user._id, undefined, user.email);
     return NextResponse.json(
       { user: publicUser(user) },
       { headers: { "Cache-Control": "no-store" } },

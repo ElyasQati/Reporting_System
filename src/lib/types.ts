@@ -75,6 +75,7 @@ export interface User extends Base {
   passwordHash?: string;
   email?: string;
   emailVerifiedAt?: string;
+  emailChangedAt?: string;
   name: string;
   role: Role;
   active: boolean;
@@ -82,6 +83,7 @@ export interface User extends Base {
 export interface Session {
   _id: string;
   userId: string;
+  authenticatedEmail?: string;
   monitorAccessId?: string;
   expiresAt: Date;
   createdAt: string;

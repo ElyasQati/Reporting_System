@@ -1,6 +1,8 @@
 import type { AuthUser, User } from "./types";
 
-export const ADMIN_EMAIL = "elyasqati527@gmail.com";
+export const ADMIN_EMAIL = "reportingsystem.af@gmail.com";
+// Reserved so this address cannot re-enter through invitations or OTP.
+export const RETIRED_ADMIN_EMAIL = "elyasqati527@gmail.com";
 export function isSystemAdmin(
   user: Pick<User, "email" | "emailVerifiedAt"> & Partial<Pick<User, "role">>,
 ) {

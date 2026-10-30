@@ -2,6 +2,8 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { collections } from "./db";
 import type { AuthUser } from "./types";
+import { RETIRED_ADMIN_EMAIL } from "./access";
+import { ensureAdministratorMigration } from "./administrator";
 export const sessionCookie = "report_desk_session";
 export function digest(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -9,6 +11,7 @@ export function digest(token: string) {
 export async function currentUser(): Promise<AuthUser | null> {
   const token = (await cookies()).get(sessionCookie)?.value;
   if (!token) return null;
+  await ensureAdministratorMigration();
   const c = await collections();
   const session = await c.sessions.findOne({
     _id: digest(token),
@@ -24,6 +27,7 @@ export async function currentUser(): Promise<AuthUser | null> {
     const owner = await c.users.findOne({ _id: access.ownerId, active: true });
     if (
       !owner?.email ||
+      owner.email === RETIRED_ADMIN_EMAIL ||
       !owner.emailVerifiedAt ||
       owner.role === "viewer" ||
       owner.role === "monitor"
@@ -44,17 +48,26 @@ export async function currentUser(): Promise<AuthUser | null> {
   }
   const user = await c.users.findOne({ _id: session.userId, active: true });
   // Legacy password sessions cannot bypass email verification or invitations.
-  return user?.email && user.emailVerifiedAt && user.role !== "monitor"
+  return user?.email &&
+    user.email !== RETIRED_ADMIN_EMAIL &&
+    user.emailVerifiedAt &&
+    user.role !== "monitor" &&
+    (!user.emailChangedAt || session.authenticatedEmail === user.email)
     ? user
     : null;
 }
-export async function createSession(userId: string, monitorAccessId?: string) {
+export async function createSession(
+  userId: string,
+  monitorAccessId?: string,
+  authenticatedEmail?: string,
+) {
   const c = await collections();
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
   await c.sessions.insertOne({
     _id: digest(token),
     userId,
+    ...(authenticatedEmail ? { authenticatedEmail } : {}),
     ...(monitorAccessId ? { monitorAccessId } : {}),
     expiresAt,
     createdAt: new Date().toISOString(),
